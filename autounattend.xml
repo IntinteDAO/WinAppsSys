@@ -147,7 +147,7 @@
             </AutoLogon>
             <FirstLogonCommands>
                 <SynchronousCommand wcm:action="add">
-                    <CommandLine>schtasks /Create /ru "SYSTEM" /tn Rearm /TR "powershell 'if(!$(cscript /Nologo $env:SystemRoot\system32\slmgr.vbs -xpr | Select-String -Pattern Initial)) { cscript /Nologo $env:SystemRoot\system32\slmgr.vbs -rearm; shutdown -r -f -t 00 } '" /SC Minute</CommandLine>
+                    <CommandLine>schtasks /Create /ru "SYSTEM" /tn Rearm /TR "powershell 'if(!$(cscript /Nologo $env:SystemRoot\system32\slmgr.vbs -xpr | Select-String -Pattern expire)) { cscript /Nologo $env:SystemRoot\system32\slmgr.vbs -rearm; ; shutdown -r -f -t 00 } '" /SC Minute</CommandLine>
                     <Description>Auto license refresher</Description>
                     <Order>1</Order>
                     <RequiresUserInput>true</RequiresUserInput>
@@ -204,12 +204,6 @@
                     <CommandLine>cmd.exe /c net localgroup "Hyper-V Administrators" linux /add</CommandLine>
                     <Description>Prevent RDP Crashing by Adding user to Hyper-V Administrators group</Description>
                     <Order>10</Order>
-                    <RequiresUserInput>true</RequiresUserInput>
-                </SynchronousCommand>
-                <SynchronousCommand wcm:action="add">
-                    <CommandLine>cmd.exe /c shutdown -s -f -t 20</CommandLine>
-                    <Description>Instalation completed - Shutting down</Description>
-                    <Order>11</Order>
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
             </FirstLogonCommands>
