@@ -11,17 +11,56 @@ unpack_drv () { echo "${red}Unpack VirtIO Drivers${reset}"; mkdir unpack_drv; cd
 patch_iso () { echo "${red}Preparation WinServ Mod${reset}"; mkdir -p unpack/drivers/amd64/2k19; mkdir -p unpack/drivers/NetKVM/2k19/amd64; cp unpack_drv/amd64/2k19/* unpack/drivers/amd64/2k19; cp unpack_drv/NetKVM/2k19/amd64/* unpack/drivers/NetKVM/2k19/amd64; cp autounattend.xml unpack; }
 creating_iso () { echo "${red}Building WinServ Mod ISO${reset}"; mkisofs -iso-level 4 -l -R -UDF -D -b boot/etfsboot.com -no-emul-boot -boot-load-size 8 -hide boot.catalog -eltorito-alt-boot -eltorito-platform efi -no-emul-boot -b efi/microsoft/boot/efisys.bin -o wsrv_mod.iso unpack;  }
 cleaning () { echo "${red}Cleaning${reset}"; rm -rf unpack; rm -rf unpack_drv; rm drv.iso; rm wsrv_clean.iso; }
+create_vm () { 
 
-if [[ "$*" == *--create-iso* ]]
+echo "${red}Creating Virtual Machine ${reset}";
+mkdir -p /home/$USER/.local/share/winapps
+
+if (( $EUID != 0 )); then
+	sudo virt-install -n RDPWindows --description "Winapps" --os-type=Windows --os-variant=win2k19 --ram=4096 --cpu host-model-only --vcpus=2 --disk path=/var/lib/libvirt/images/RDPWindows.img,bus=virtio,size=100 --graphics spice,listen=127.0.0.1 --cdrom $PWD/wsrv_mod.iso --network network=default,model=virtio --check disk_size=off;
+	sudo virsh change-media RDPWindows sda --eject
+	sudo chown $USER:$USER /var/lib/libvirt/images/RDPWindows.img
+	sudo virsh autostart RDPWindows;
+else
+	virt-install -n RDPWindows --description "Winapps" --os-type=Windows --os-variant=win2k19 --ram=4096 --cpu host-model-only --vcpus=2 --disk path=/var/lib/libvirt/images/RDPWindows.img,bus=virtio,size=100 --graphics spice,listen=127.0.0.1 --cdrom $PWD/wsrv_mod.iso --network network=default,model=virtio --check disk_size=off;
+	virsh change-media RDPWindows sda --eject
+	chown $USER:$USER /var/lib/libvirt/images/RDPWindows.img
+	virsh autostart RDPWindows;
+fi
+ }
+
+if [[ "$*" == *--autoinstall* ]]
+then
+
+disclaimer
+
+if [ ! -f "wsrv_mod.iso" ]
+then
+	download_win
+	download_drv
+	unpack_win
+	unpack_drv
+	patch_iso
+	creating_iso
+	cleaning
+fi
+
+create_vm
+
+elif [[ "$*" == *--create-iso* ]]
 then
 disclaimer
-download_win
-download_drv
-unpack_win
-unpack_drv
-patch_iso
-creating_iso
-cleaning
+
+if [ ! -f "wsrv_mod.iso" ]
+then
+	download_win
+	download_drv
+	unpack_win
+	unpack_drv
+	patch_iso
+	creating_iso
+	cleaning
+fi
 
 elif [[ "$*" == *--version* ]]
 then
@@ -35,9 +74,10 @@ The rights to Windows Server belong to Microsoft Corporation.
 Use Wine if possible :-)";
 
 else
-    echo "WinAppsSys 1.0 : 2021 IntinteDAO";
+    echo "WinAppsSys 1.1 : 2021 IntinteDAO";
     echo "";
     echo "Available options:";
+    echo "--autoinstall : Creating WinServ ISO and install in KVM automatically";
     echo "--create-iso : Creating WinServ ISO ready to install in KVM for Winapps";
     echo "--version : Version and information about WinAppsSys";
 fi
