@@ -17,15 +17,17 @@ echo "${red}Creating Virtual Machine ${reset}";
 mkdir -p /home/$USER/.local/share/winapps
 
 if (( $EUID != 0 )); then
-	sudo virt-install -n RDPWindows --description "Winapps" --os-type=Windows --os-variant=win2k19 --ram=4096 --cpu host-model-only --vcpus=2 --disk path=/var/lib/libvirt/images/RDPWindows.img,bus=virtio,size=100 --graphics spice,listen=127.0.0.1 --cdrom $PWD/wsrv_mod.iso --network network=default,model=virtio --check disk_size=off;
+	sudo virt-install -n RDPWindows --description "Winapps" --os-type=Windows --os-variant=win2k19 --ram=4096 --cpu host-model-only --vcpus=2 --disk path=/var/lib/libvirt/images/RDPWindows.img,bus=virtio,size=100 --graphics spice,listen=127.0.0.1 --cdrom $PWD/wsrv_mod.iso --network network=default,model=virtio --check disk_size=off --noreboot;
 	sudo virsh change-media RDPWindows sda --eject
 	sudo chown $USER:$USER /var/lib/libvirt/images/RDPWindows.img
 	sudo virsh autostart RDPWindows;
+	sudo virsh start RDPWindows;
 else
-	virt-install -n RDPWindows --description "Winapps" --os-type=Windows --os-variant=win2k19 --ram=4096 --cpu host-model-only --vcpus=2 --disk path=/var/lib/libvirt/images/RDPWindows.img,bus=virtio,size=100 --graphics spice,listen=127.0.0.1 --cdrom $PWD/wsrv_mod.iso --network network=default,model=virtio --check disk_size=off;
+	virt-install -n RDPWindows --description "Winapps" --os-type=Windows --os-variant=win2k19 --ram=4096 --cpu host-model-only --vcpus=2 --disk path=/var/lib/libvirt/images/RDPWindows.img,bus=virtio,size=100 --graphics spice,listen=127.0.0.1 --cdrom $PWD/wsrv_mod.iso --network network=default,model=virtio --check disk_size=off --noreboot;
 	virsh change-media RDPWindows sda --eject
 	chown $USER:$USER /var/lib/libvirt/images/RDPWindows.img
 	virsh autostart RDPWindows;
+	virsh start RDPWindows;
 fi
  }
 
